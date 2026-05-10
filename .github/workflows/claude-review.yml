@@ -1,0 +1,34 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  auto-review:
+    if: "!github.event.pull_request.draft"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-base-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-sonnet-4-6
+          prompt: |
+            Review this pull request and post a concise comment covering:
+            1. What the PR does
+            2. Any bugs, edge cases, or logic errors
+            3. Security concerns (injections, auth issues, data exposure)
+            4. Code quality issues (readability, naming, duplication)
+            5. Specific suggestions for improvement
+
+            Be direct and constructive. Skip praise for things that are fine.
+        env:
+          ANTHROPIC_BASE_URL: ${{ secrets.CODEMIE_BASE_URL }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
